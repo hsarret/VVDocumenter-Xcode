@@ -21,13 +21,47 @@
     return self;
 }
 
+#define FORMATTING 1
+
 -(NSString *) startComment
 {
-    return [NSString stringWithFormat:@"%@/**\n%@ *\t<#%@#>\n",self.indent,self.indent,@"Description"];
+#if FORMATTING == 1
+    return @"/**\t<#Description#>";
+#else
+	return [NSString stringWithFormat:@"%@/**\n%@ *\t<#%@#>\n",self.indent,self.indent,@"Description"];
+#endif
 }
 
 -(NSString *) argumentsComment
 {
+#if FORMATTING == 1
+	NSUInteger tabSize = 4;
+	NSUInteger maxLength = 0;
+	for (VVArgument *arg in self.arguments) {
+		if (arg.name.length > maxLength) {
+			maxLength = arg.name.length;
+		}
+	}
+	NSUInteger offset = ((maxLength / tabSize) + 1) * tabSize;
+
+    NSMutableString *result = [NSMutableString stringWithString:@""];
+	[ self.arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		VVArgument *arg = (VVArgument *)obj;
+        if (result.length == 0) {
+            [result appendFormat:@"\n"];
+        }
+		NSUInteger argLength = arg.name.length;
+		NSUInteger tabsCountToAlign = (((offset - argLength) / tabSize) + 1);
+        [result appendFormat:@"\t@param\t%@",arg.name];
+		for (int i = 0; i < tabsCountToAlign; ++i ) {
+			[result appendString:@"\t"];
+		}
+		[result appendString:@"<#description#>"];
+		if (idx != self.arguments.count-1) {
+			[result appendString:@"\n"];
+		}
+	} ];
+#else
     NSMutableString *result = [NSMutableString stringWithString:@""];
     for (VVArgument *arg in self.arguments) {
         if (result.length == 0) {
@@ -35,6 +69,7 @@
         }
         [result appendFormat:@"%@ *\t@param\t%@\t<#%@ description#>\n",self.indent,arg.name,arg.name];
     }
+#endif
     return result;
 }
 
@@ -44,13 +79,21 @@
     if (!self.hasReturn) {
         return @"";
     } else {
+#if FORMATTING == 1
+        return [NSString stringWithFormat:@"\n\t@return\t<#description#>"];
+#else
         return [NSString stringWithFormat:@"%@ *\n%@ *\t@return\t<#return value description#>\n",self.indent,self.indent];
+#endif
     }
 }
 
 -(NSString *) endComment
 {
+#if FORMATTING == 1
+    return [NSString stringWithFormat:@" */"];
+#else
     return [NSString stringWithFormat:@"%@ */",self.indent];
+#endif
 }
 
 -(NSString *) document
