@@ -51,7 +51,8 @@
             [result appendFormat:@"\n"];
         }
 		NSUInteger argLength = arg.name.length;
-		NSUInteger tabsCountToAlign = (((offset - argLength) / tabSize) + 1);
+		NSUInteger left = offset - argLength;
+		NSUInteger tabsCountToAlign = ((left / tabSize) + ((left % tabSize) ? 1 : 0));
         [result appendFormat:@"\t@param\t%@",arg.name];
 		for (int i = 0; i < tabsCountToAlign; ++i ) {
 			[result appendString:@"\t"];
